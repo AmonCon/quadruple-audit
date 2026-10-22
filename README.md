@@ -1,6 +1,6 @@
 # quadruple-audit
 
-[![Version](https://img.shields.io/badge/version-1.2.1-blue)](https://github.com/AmonCon/quadruple-audit/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.2.2-blue)](https://github.com/AmonCon/quadruple-audit/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 四轮审查：一套面向 AI 编程智能体的审查流程，目标是让每个结论**都能被独立复核**，并且让「查了什么」「没查什么」在输出里分得开。
 
@@ -68,19 +68,23 @@
 
 ## 安装
 
-一行安装——任何机器、任何 agent，不需要先 clone 仓库。macOS / Linux / Git Bash（先下载脚本再运行，不盲管道执行）：
+一行安装——任何机器、任何 agent，不需要先 clone 仓库，也不把远程脚本直接管进 shell：先落盘，再执行。
+
+macOS / Linux / Git Bash：
 
 ```bash
 curl -fsSL https://github.com/AmonCon/quadruple-audit/raw/main/install.sh -o install-qa.sh && bash install-qa.sh && rm install-qa.sh
 ```
 
-Windows PowerShell：
+Windows PowerShell（同样先落盘；`irm ... | iex` 也能用，但落盘方式可审查、可留存）：
 
 ```powershell
-irm https://github.com/AmonCon/quadruple-audit/raw/main/install.ps1 | iex
+irm https://github.com/AmonCon/quadruple-audit/raw/main/install.ps1 -OutFile install-qa.ps1; powershell -ExecutionPolicy Bypass -File install-qa.ps1; Remove-Item install-qa.ps1
 ```
 
-脚本会自动探测本机的 agent 技能目录（Claude Code、ZCode、通用 `~/.agents/skills` 等），拉取最新文件装进去，并打印装到的**版本号和路径**。要指定目录，先设环境变量 `QUADRUPLE_AUDIT_SKILLS_DIR` 再运行。
+**验证状态（诚实说明）**：Windows PowerShell 安装器已端到端实测（远程拉取、本地克隆、覆盖旧副本）。`install.sh` 只用 POSIX 工具（`curl` / `tar` / `mktemp` / `cp` / `grep` / `sed`，无 GNU 专属参数，兼容 macOS 自带的 bash 3.2），但作者环境里没有 POSIX shell，**macOS / Linux 尚未实测**——遇到问题请开 issue。审查流程本身与操作系统无关：它只要求 agent 能读文件、跑命令。
+
+脚本会自动探测本机的 agent 技能目录（Claude Code、ZCode、通用 `~/.agents/skills` 等），拉取最新文件装进去，并打印装到的**版本号和路径**。**只装第一个探测到的目录**（优先 `~/.claude/skills`）；机器上同时存在多个技能目录时，脚本会列出被跳过的目录，按提示设环境变量 `QUADRUPLE_AUDIT_SKILLS_DIR` 再跑一次即可。
 
 网络环境拿不到 GitHub raw 内容时，退回克隆安装：`git clone` 本仓库后运行 `./install.sh`（Windows：`powershell -ExecutionPolicy Bypass -File install.ps1`）。也可以手动放到任意一个技能目录：
 
@@ -89,6 +93,8 @@ irm https://github.com/AmonCon/quadruple-audit/raw/main/install.ps1 | iex
 | Claude Code（全局） | `~/.claude/skills/quadruple-audit/` |
 | ZCode / 多数 agent（全局） | `~/.agents/skills/quadruple-audit/` |
 | 项目级（任何 agent） | `<repo>/.claude/skills/quadruple-audit/` |
+
+Windows 上把 `~` 换成 `%USERPROFILE%`（例如 `%USERPROFILE%\.agents\skills\quadruple-audit\`）。
 
 更新：重跑一遍上面同样的命令即可（克隆安装的则 `git pull` 后重跑脚本）；卸载：删掉技能目录。
 

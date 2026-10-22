@@ -1,8 +1,9 @@
 # Installer for the quadruple-audit skill (Windows).
 #
 # Local (from a clone):  powershell -ExecutionPolicy Bypass -File install.ps1 [target_dir]
-# Remote (one-liner):    irm https://github.com/AmonCon/quadruple-audit/raw/main/install.ps1 | iex
-#                        (target override: $env:QUADRUPLE_AUDIT_SKILLS_DIR = '<dir>' first)
+# Remote (download first):  irm https://github.com/AmonCon/quadruple-audit/raw/main/install.ps1 -OutFile install-qa.ps1
+#                           powershell -ExecutionPolicy Bypass -File install-qa.ps1
+#                           (target override: $env:QUADRUPLE_AUDIT_SKILLS_DIR = '<dir>' first)
 #
 # The skill is plain Markdown + prompts: copying SKILL.md (and friends) into
 # the skills directory of your agent is the whole installation.
@@ -25,13 +26,14 @@ if (-not $PSScriptRoot -or -not (Test-Path (Join-Path $here 'SKILL.md')) -or -no
   $here = Join-Path $tmp 'quadruple-audit-main'
 }
 
+$candidates = @(
+  (Join-Path $HOME '.claude\skills'),
+  (Join-Path $HOME '.agents\skills')
+)
 $target = $args[0]
 if (-not $target -and $env:QUADRUPLE_AUDIT_SKILLS_DIR) { $target = $env:QUADRUPLE_AUDIT_SKILLS_DIR }
+$explicit = [bool]$target
 if (-not $target) {
-  $candidates = @(
-    (Join-Path $HOME '.claude\skills'),
-    (Join-Path $HOME '.agents\skills')
-  )
   foreach ($c in $candidates) {
     if (Test-Path $c) { $target = $c; break }
   }
@@ -39,6 +41,14 @@ if (-not $target) {
 if (-not $target) {
   $target = Join-Path $HOME '.agents\skills'
   Write-Host "No agent skills directory found; creating $target (works for ZCode and most agents)."
+}
+if (-not $explicit) {
+  $skipped = @($candidates | Where-Object { (Test-Path $_) -and ($_ -ne $target) })
+  if ($skipped.Count -gt 0) {
+    Write-Host 'Also found other agent skill directories (not installed):'
+    foreach ($s in $skipped) { Write-Host "  $s" }
+    Write-Host "Run again with `$env:QUADRUPLE_AUDIT_SKILLS_DIR='<dir>' to install there too."
+  }
 }
 
 $dest = Join-Path $target 'quadruple-audit'
