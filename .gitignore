@@ -14,3 +14,16 @@ package-lock.json
 # Local scratch
 *.log
 *.tmp
+
+# Secrets — this repo must stay credential-free.
+# The skill never needs the credentials of the project it audits: auditors read
+# them at run time, they are never written into prompts, logs or artifacts.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+.secrets
+secrets/
+credentials.json
