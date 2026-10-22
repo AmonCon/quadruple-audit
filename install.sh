@@ -46,6 +46,24 @@ if [ -z "$TARGET" ]; then
   echo "No agent skills directory found; creating $TARGET (works for ZCode and most agents)."
 fi
 
+# Only the first detected directory gets the skill. Say which ones were skipped
+# instead of silently leaving other agents on an old copy.
+if [ -z "${1:-}${QUADRUPLE_AUDIT_SKILLS_DIR:-}" ]; then
+  SKIP_COUNT=0
+  for dir in "${CANDIDATES[@]}"; do
+    if [ -d "$dir" ] && [ "$dir" != "$TARGET" ]; then
+      if [ "$SKIP_COUNT" -eq 0 ]; then
+        echo "Also found other agent skill directories (not installed):"
+      fi
+      echo "  $dir"
+      SKIP_COUNT=$((SKIP_COUNT + 1))
+    fi
+  done
+  if [ "$SKIP_COUNT" -gt 0 ]; then
+    echo "Run again with QUADRUPLE_AUDIT_SKILLS_DIR=<dir> to install there too."
+  fi
+fi
+
 mkdir -p "$TARGET/quadruple-audit/examples"
 cp SKILL.md README.md LICENSE "$TARGET/quadruple-audit/"
 cp examples/sample-report.md "$TARGET/quadruple-audit/examples/"
