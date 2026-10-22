@@ -51,15 +51,27 @@
 
 ## 安装
 
-把本目录放到宿主的技能目录下即可，具体路径各家不同：
+一行安装（macOS / Linux / Git Bash）：
+
+```bash
+git clone https://github.com/AmonCon/quadruple-audit
+cd quadruple-audit
+./install.sh          # Windows 用：powershell -ExecutionPolicy Bypass -File install.ps1
+```
+
+安装脚本会自动探测当前机器的 agent 技能目录（Claude Code、ZCode、通用 `~/.agents/skills` 等），把技能复制进去并告诉你如何调用。也可以手动放到任意一个技能目录：
 
 | 宿主 | 路径 |
 |------|------|
-| ZCode / Claude Code（全局） | `~/.claude/skills/quadruple-audit/` |
-| ZCode / 通用（全局） | `~/.agents/skills/quadruple-audit/` |
-| 项目级 | `<repo>/.claude/skills/quadruple-audit/` |
+| Claude Code（全局） | `~/.claude/skills/quadruple-audit/` |
+| ZCode / 多数 agent（全局） | `~/.agents/skills/quadruple-audit/` |
+| 项目级（任何 agent） | `<repo>/.claude/skills/quadruple-audit/` |
 
-技能只需要文件读取和子智能体，不需要任何第三方服务、API 密钥或特定宿主。
+## 通用性
+
+这个技能不绑定任何东西：不需要 npm 包、不需要构建步骤、不需要第三方服务、不需要 API 密钥，也不挑宿主。任何能读文件、能派子智能体的 agent（Claude Code、ZCode、Cursor、Codex、自建工具……），在任何操作系统、任何项目、任何机器上都能跑。
+
+安装只影响「你的 agent 多了一个技能」，不影响被审查的项目：审查者在运行时自己读文件、自己跑命令，项目的凭据不经过技能本体（见 `SKILL.md` 的「数据源探测」一节）。
 
 ## 使用
 
@@ -127,6 +139,7 @@ B 档的结构性隔离靠提示词实现：复现者拿到的只有 `where` / `
 |------|------|
 | `SKILL.md` | 全部内容：五个阶段、证据契约、两档适配、提示词骨架、反模式、已知局限 |
 | `examples/sample-report.md` | 一次真实审查的完整脱敏输出 |
+| `install.sh` / `install.ps1` | 一行安装脚本（macOS / Linux / Windows），探测并复制到本机的 agent 技能目录 |
 | `CONTRIBUTING.md` | 最需要什么贡献、改流程时必须守住的三条 |
 | `LICENSE` | MIT |
 
