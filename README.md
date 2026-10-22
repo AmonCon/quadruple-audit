@@ -1,6 +1,6 @@
 # quadruple-audit
 
-[![Version](https://img.shields.io/badge/version-1.1.0-blue)](https://github.com/AmonCon/quadruple-audit/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue)](https://github.com/AmonCon/quadruple-audit/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 四轮审查：一套面向 AI 编程智能体的审查流程，目标是让每个结论**都能被独立复核**，并且让「查了什么」「没查什么」在输出里分得开。
 
@@ -95,6 +95,8 @@ irm https://github.com/AmonCon/quadruple-audit/raw/main/install.ps1 | iex
 ## 通用性
 
 这个技能不绑定任何东西：不需要 npm 包、不需要构建步骤、不需要第三方服务、不需要 API 密钥，也不挑宿主。任何能读文件、能派子智能体的 agent（Claude Code、ZCode、Cursor、Codex、自建工具……），在任何操作系统、任何项目、任何机器上都能跑。
+
+**审查是只读的。** 审出问题不等于被授权修复：不修改被审查的文件、不跑迁移、不写库、不建单不扣库存、不部署不提交。需要查库时只用 `SELECT`、串行、带 `LIMIT`，密钥不进报告和账本。想验证并发与写入路径，用状态机枚举，而不是真的写进去——这条边界写在 `SKILL.md` 的「适用范围与权限边界」和「查库纪律」两节。
 
 安装只影响「你的 agent 多了一个技能」，不影响被审查的项目：审查者在运行时自己读文件、自己跑命令，项目的凭据不经过技能本体（见 `SKILL.md` 的「数据源探测」一节）。
 
