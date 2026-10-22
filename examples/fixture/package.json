@@ -1,0 +1,9 @@
+{
+  "name": "fixture-favorites",
+  "version": "0.0.1",
+  "private": true,
+  "description": "quadruple-audit 冒烟测试夹具：一个故意埋了问题的极简收藏服务",
+  "scripts": {
+    "test": "node test.js"
+  }
+}
