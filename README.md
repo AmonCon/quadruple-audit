@@ -1,5 +1,7 @@
 # quadruple-audit
 
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/AmonCon/quadruple-audit/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 四轮审查：一套面向 AI 编程智能体的审查流程，目标是让每个结论**都能被独立复核**，并且让「查了什么」「没查什么」在输出里分得开。
 
 > **成本警告：这不是一个便宜的流程。** 一次完整审查要派出几十个子智能体（样例那次是 9 个视角单元 + 21 个复现者 + 空白猎手 + 裁决者），实测约 **6000 万 token**。审一个文件的代价远低于这个数，但审一个完整功能，消耗可达单轮审查的几十到上百倍（取决于分区数与发现数量）。预算有限或只想先试水，先看「成本」一节的**轻量模式**。**完整流程用不用，读「什么时候不该用」一节的最后一段再决定。**
@@ -66,15 +68,21 @@
 
 ## 安装
 
-一行安装（macOS / Linux / Git Bash）：
+一行安装——任何机器、任何 agent，不需要先 clone 仓库。macOS / Linux / Git Bash（先下载脚本再运行，不盲管道执行）：
 
 ```bash
-git clone https://github.com/AmonCon/quadruple-audit
-cd quadruple-audit
-./install.sh          # Windows 用：powershell -ExecutionPolicy Bypass -File install.ps1
+curl -fsSL https://github.com/AmonCon/quadruple-audit/raw/main/install.sh -o install-qa.sh && bash install-qa.sh && rm install-qa.sh
 ```
 
-安装脚本会自动探测当前机器的 agent 技能目录（Claude Code、ZCode、通用 `~/.agents/skills` 等），把技能复制进去并告诉你如何调用。也可以手动放到任意一个技能目录：
+Windows PowerShell：
+
+```powershell
+irm https://github.com/AmonCon/quadruple-audit/raw/main/install.ps1 | iex
+```
+
+脚本会自动探测本机的 agent 技能目录（Claude Code、ZCode、通用 `~/.agents/skills` 等），拉取最新文件装进去，并打印装到的**版本号和路径**。要指定目录，先设环境变量 `QUADRUPLE_AUDIT_SKILLS_DIR` 再运行。
+
+网络环境拿不到 GitHub raw 内容时，退回克隆安装：`git clone` 本仓库后运行 `./install.sh`（Windows：`powershell -ExecutionPolicy Bypass -File install.ps1`）。也可以手动放到任意一个技能目录：
 
 | 宿主 | 路径 |
 |------|------|
@@ -82,7 +90,7 @@ cd quadruple-audit
 | ZCode / 多数 agent（全局） | `~/.agents/skills/quadruple-audit/` |
 | 项目级（任何 agent） | `<repo>/.claude/skills/quadruple-audit/` |
 
-更新就是 `git pull` 之后重跑一次安装脚本；卸载就是删掉那个技能目录。
+更新：重跑一遍上面同样的命令即可（克隆安装的则 `git pull` 后重跑脚本）；卸载：删掉技能目录。
 
 ## 通用性
 
@@ -178,7 +186,7 @@ B 档的结构性隔离靠提示词实现：复现者拿到的只有 `where` / `
 | `SKILL.md` | 全部内容：阶段总览、证据契约、两档适配、提示词骨架、反模式、已知局限 |
 | `examples/sample-report.md` | 一次真实审查的完整脱敏输出 |
 | `examples/fixture/` + `examples/fixture-expected.md` | 冒烟测试：零依赖迷你项目，埋了 3 个真问题 + 1 个应被否掉的假问题，附期望产出 |
-| `install.sh` / `install.ps1` | 一行安装脚本（macOS / Linux / Windows），探测并复制到本机的 agent 技能目录 |
+| `install.sh` / `install.ps1` | 一行安装脚本（macOS / Linux / Windows），支持克隆本地安装与远程拉取安装，自动探测本机的 agent 技能目录 |
 | `CONTRIBUTING.md` | 最需要什么贡献、改流程时必须守住的三条 |
 | `LICENSE` | MIT |
 
