@@ -1,6 +1,6 @@
 # quadruple-audit
 
-[![Version](https://img.shields.io/badge/version-1.2.0-blue)](https://github.com/AmonCon/quadruple-audit/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.2.1-blue)](https://github.com/AmonCon/quadruple-audit/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 四轮审查：一套面向 AI 编程智能体的审查流程，目标是让每个结论**都能被独立复核**，并且让「查了什么」「没查什么」在输出里分得开。
 
