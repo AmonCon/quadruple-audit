@@ -77,9 +77,10 @@ if (-not $explicit) {
 }
 
 $dest = Join-Path $target 'quadruple-audit'
-New-Item -ItemType Directory -Force -Path (Join-Path $dest 'examples') | Out-Null
-Copy-Item (Join-Path $here 'SKILL.md'), (Join-Path $here 'README.md'), (Join-Path $here 'LICENSE') -Destination $dest -Force
-Copy-Item (Join-Path $here 'examples\sample-report.md') -Destination (Join-Path $dest 'examples') -Force
+New-Item -ItemType Directory -Force -Path (Join-Path $dest 'examples\fixture') | Out-Null
+Copy-Item (Join-Path $here 'SKILL.md'), (Join-Path $here 'README.md'), (Join-Path $here 'LICENSE'), (Join-Path $here 'CONTRIBUTING.md') -Destination $dest -Force
+Copy-Item (Join-Path $here 'examples\sample-report.md'), (Join-Path $here 'examples\fixture-expected.md') -Destination (Join-Path $dest 'examples') -Force
+Copy-Item (Join-Path $here 'examples\fixture\README.md'), (Join-Path $here 'examples\fixture\package.json'), (Join-Path $here 'examples\fixture\favorites.js'), (Join-Path $here 'examples\fixture\test.js') -Destination (Join-Path $dest 'examples\fixture') -Force
 
 $version = (Select-String -Path (Join-Path $dest 'SKILL.md') -Pattern '^version:\s*(.+)$' | Select-Object -First 1).Matches.Groups[1].Value
 Write-Host "Installed quadruple-audit v$version into $dest"
