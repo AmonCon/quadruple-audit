@@ -1,6 +1,6 @@
 # quadruple-audit
 
-[![Version](https://img.shields.io/badge/version-1.2.3-blue)](https://github.com/AmonCon/quadruple-audit/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.2.4-blue)](https://github.com/AmonCon/quadruple-audit/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 四轮审查：一套面向 AI 编程智能体的审查流程，目标是让每个结论**都能被独立复核**，并且让「查了什么」「没查什么」在输出里分得开。
 
@@ -82,7 +82,13 @@ Windows PowerShell（同样先落盘；`irm ... | iex` 也能用，但落盘方�
 irm https://github.com/AmonCon/quadruple-audit/raw/main/install.ps1 -OutFile install-qa.ps1; powershell -ExecutionPolicy Bypass -File install-qa.ps1; Remove-Item install-qa.ps1
 ```
 
-**验证状态（诚实说明）**：Windows PowerShell 安装器已端到端实测（远程拉取、本地克隆、覆盖旧副本、镜像回退）。`install.sh` 只用 POSIX 工具（`curl` / `tar` / `mktemp` / `cp` / `grep` / `sed`，无 GNU 专属参数，兼容 macOS 自带的 bash 3.2），但**macOS / Linux 尚未在真机上跑通**——首次真机尝试就卡在被墙的下载步骤，随后才补上镜像回退。遇到问题请开 issue。审查流程本身与操作系统无关：它只要求 agent 能读文件、跑命令。
+**验证状态（诚实说明）**：
+
+- **Windows** PowerShell 安装器端到端实测（远程拉取、本地克隆、覆盖旧副本、镜像回退）。
+- **macOS** 实测通过（2026-10-23，MacBook Pro，系统自带 bash 3.2）：经镜像取整包 → `tar` 解包 → `install.sh` 本地安装 → 装到 `~/.agents/skills/quadruple-audit`，读回 `version: 1.2.3`。**未单独实测的分支**：`install.sh` 自己下载整包的那条路（真机上是先手动取了包）。它用的 `curl` + `tar` 正是同一次实测里已经跑通的命令。
+- **Linux** 尚未实测。
+
+遇到问题请开 issue。审查流程本身与操作系统无关：它只要求 agent 能读文件、跑命令。
 
 **连不上 GitHub 时（中国大陆常见）**：`raw.githubusercontent.com` 与 github.com 经常不可达。安装器内部会依次尝试 GitHub 和三个公共镜像（ghproxy.net / gh-proxy.com / ghfast.top）；但**第一步下载安装脚本**也可能失败——那就直接用镜像取整包，完全绕开 raw 域名：
 
