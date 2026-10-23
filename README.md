@@ -85,8 +85,12 @@ irm https://github.com/AmonCon/quadruple-audit/raw/main/install.ps1 -OutFile ins
 **验证状态（诚实说明）**：
 
 - **Windows** PowerShell 安装器端到端实测（远程拉取、本地克隆、覆盖旧副本、镜像回退）。
-- **macOS** 实测通过（2026-10-23，MacBook Pro，系统自带 bash 3.2）：经镜像取整包 → `tar` 解包 → `install.sh` 本地安装 → 装到 `~/.agents/skills/quadruple-audit`，读回 `version: 1.2.3`。**未单独实测的分支**：`install.sh` 自己下载整包的那条路（真机上是先手动取了包）。它用的 `curl` + `tar` 正是同一次实测里已经跑通的命令。
+- **macOS** 实测通过（2026-10-23，MacBook Pro，系统自带 bash 3.2），两条路都跑通了：
+  - 镜像取整包 → `tar` 解包 → 本地 `install.sh` 安装，装到 `~/.agents/skills/quadruple-audit`，版本回读一致；
+  - 只下载 `install.sh` 单独执行（不给它本地包），它自己拉取仓库、解包、安装成功。
 - **Linux** 尚未实测。
+
+实测中的一个细节值得记下来：同一台机器上 `raw.githubusercontent.com` 连不上，但 `github.com` 的归档下载可用——**被墙的往往只是 raw 域名**。所以安装脚本本身从镜像取、或用镜像整包，通常就够；脚本内部的镜像回退是为 github.com 也连不上时准备的。
 
 遇到问题请开 issue。审查流程本身与操作系统无关：它只要求 agent 能读文件、跑命令。
 
