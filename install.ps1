@@ -21,7 +21,32 @@ if (-not $PSScriptRoot -or -not (Test-Path (Join-Path $here 'SKILL.md')) -or -no
   $tmp = Join-Path $env:TEMP ('qa-install-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
   New-Item -ItemType Directory -Force -Path $tmp | Out-Null
   $tgz = Join-Path $tmp 'quadruple-audit.tar.gz'
-  Invoke-WebRequest -Uri 'https://github.com/AmonCon/quadruple-audit/archive/refs/heads/main.tar.gz' -OutFile $tgz -UseBasicParsing
+  # Mirrors: raw.githubusercontent.com and sometimes github.com are unreachable
+  # in mainland China. Set QUADRUPLE_AUDIT_MIRROR to use your own prefix.
+  $repoPath = 'https://github.com/AmonCon/quadruple-audit/archive/refs/heads/main.tar.gz'
+  if ($env:QUADRUPLE_AUDIT_MIRROR) {
+    $urls = @($env:QUADRUPLE_AUDIT_MIRROR.TrimEnd('/') + '/' + $repoPath)
+  } else {
+    $urls = @(
+      $repoPath,
+      'https://ghproxy.net/' + $repoPath,
+      'https://gh-proxy.com/' + $repoPath,
+      'https://ghfast.top/' + $repoPath
+    )
+  }
+  $ok = $false
+  foreach ($url in $urls) {
+    Write-Host "Trying $url"
+    try {
+      Invoke-WebRequest -Uri $url -OutFile $tgz -UseBasicParsing -TimeoutSec 60
+      tar -tzf $tgz | Out-Null
+      if ($LASTEXITCODE -eq 0) { $ok = $true; break }
+      Write-Host '  ...failed (not a valid archive)'
+    } catch {
+      Write-Host '  ...failed'
+    }
+  }
+  if (-not $ok) { throw 'Every download source failed. Check your network, or clone the repo and run install.ps1 locally.' }
   tar -xzf $tgz -C $tmp
   $here = Join-Path $tmp 'quadruple-audit-main'
 }
