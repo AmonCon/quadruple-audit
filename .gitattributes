@@ -1,0 +1,6 @@
+# Normalise line endings in the repository.
+* text=auto
+
+# Shell scripts must keep LF endings even on Windows with core.autocrlf=true,
+# otherwise a clone-and-run `./install.sh` dies on `/usr/bin/env: 'bash\r'`.
+*.sh text eol=lf
