@@ -91,9 +91,11 @@ if [ -z "${1:-}${QUADRUPLE_AUDIT_SKILLS_DIR:-}" ]; then
   fi
 fi
 
-mkdir -p "$TARGET/quadruple-audit/examples"
-cp SKILL.md README.md LICENSE "$TARGET/quadruple-audit/"
-cp examples/sample-report.md "$TARGET/quadruple-audit/examples/"
+mkdir -p "$TARGET/quadruple-audit/examples/fixture"
+cp SKILL.md README.md LICENSE CONTRIBUTING.md "$TARGET/quadruple-audit/"
+cp examples/sample-report.md examples/fixture-expected.md "$TARGET/quadruple-audit/examples/"
+cp examples/fixture/README.md examples/fixture/package.json examples/fixture/favorites.js examples/fixture/test.js \
+  "$TARGET/quadruple-audit/examples/fixture/"
 
 VERSION="$(grep -m1 '^version:' SKILL.md | sed 's/^version:[[:space:]]*//')"
 echo "Installed quadruple-audit v${VERSION:-unknown} into $TARGET/quadruple-audit"
