@@ -85,12 +85,12 @@ irm https://github.com/AmonCon/quadruple-audit/raw/main/install.ps1 -OutFile ins
 **验证状态（诚实说明）**：
 
 - **Windows** PowerShell 安装器端到端实测（远程拉取、本地克隆、覆盖旧副本、镜像回退）。
-- **macOS** 实测通过（2026-10-23，MacBook Pro，系统自带 bash 3.2），两条路都跑通了：
+- **macOS** 实测通过（2026-10-23，MacBook Pro，系统自带 bash 3.2 / BSD tar），两条路都跑通了：
   - 镜像取整包 → `tar` 解包 → 本地 `install.sh` 安装，装到 `~/.agents/skills/quadruple-audit`，版本回读一致；
   - 只下载 `install.sh` 单独执行（不给它本地包），它自己拉取仓库、解包、安装成功。
-- **Linux** 尚未实测。
+- **Linux** 实测通过（2026-10-23，Ubuntu 24.04 / 内核 6.8 / bash 5.2.21 / GNU tar 1.35 / curl 8.5.0，阿里云 ECS）：`install.sh` 自举拉取 → 装到 `~/.claude/skills/quadruple-audit`，`version: 1.2.4`，文件完整（`SKILL.md` / `README.md` / `LICENSE` / `examples/sample-report.md`）；冒烟夹具在该机 `node v22` 上运行，如设计般以**退出码 1** 失败（断言 `未删除任何行却返回了 success:true`）。
 
-实测中的一个细节值得记下来：同一台机器上 `raw.githubusercontent.com` 连不上，但 `github.com` 的归档下载可用——**被墙的往往只是 raw 域名**。所以安装脚本本身从镜像取、或用镜像整包，通常就够；脚本内部的镜像回退是为 github.com 也连不上时准备的。
+实测中的一个细节值得记下来：同一台机器上 `raw.githubusercontent.com` 可能连不上，而 `github.com` 的归档下载可用——**被墙的往往只是 raw 域名**。所以安装脚本本身从镜像取、或用镜像整包，通常就够；脚本内部的镜像回退是为 github.com 也连不上时准备的。Linux 那台恰好反过来：`github.com` 直连可用，镜像没被触发。
 
 遇到问题请开 issue。审查流程本身与操作系统无关：它只要求 agent 能读文件、跑命令。
 
