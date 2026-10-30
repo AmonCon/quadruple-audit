@@ -1,6 +1,6 @@
 # quadruple-audit
 
-[![Version](https://img.shields.io/badge/version-1.2.4-blue)](https://github.com/AmonCon/quadruple-audit/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue)](https://github.com/AmonCon/quadruple-audit/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 四轮审查：一套面向 AI 编程智能体的审查流程，目标是让每个结论**都能被独立复核**，并且让「查了什么」「没查什么」在输出里分得开。
 
@@ -29,11 +29,13 @@
 | 归类（按需） | 同根因归类者 | 全部候选的 where + what | 同源分组 |
 | 二 · 复现 | 每条发现一个复现者 | 只有 where/what/evidence | 复现 / 否定 / 存疑 |
 | 三 · 反查 | 空白猎手 + 翻案者 | 覆盖清单 / 被否定项 | 遗漏项与翻案项 |
-| 四 · 裁决 | 裁决者 | 前几个阶段的结构化结果 | 收敛清单 + 系统性缺陷 + 改进建议 + 覆盖账本 + 终稿反查 |
+| 四 · 裁决 | 裁决者（runStatus / mode 由编排层写） | 前几个阶段的结构化结果 | 收敛清单 + 系统性缺陷 + 改进建议 + 覆盖账本 + 终稿反查 + 运行终态 |
 
 「归类」只在候选超过 3 条时触发，用来避免多个视角报同一根因时付多份复现费。
 
 报告里还有一层「系统性缺陷」：条目按「一次动手能修完」为单位（方便分工），但同一类毛病散落在多个模块时会单独标出来（例如十条里四条都是「写操作不检查结果」）。两个视角都要有，缺哪个都会误判。
+
+严重度先按后果分档，再用影响面和可恢复性微调；触发条件只影响可能性，不跨档降级。所有发现都标 high，等于没有分级。
 
 ## 为什么是四轮
 
@@ -89,7 +91,7 @@ irm https://github.com/AmonCon/quadruple-audit/raw/main/install.ps1 -OutFile ins
 - **macOS** 实测通过（2026-10-23，MacBook Pro，系统自带 bash 3.2 / BSD tar），两条路都跑通了：
   - 镜像取整包 → `tar` 解包 → 本地 `install.sh` 安装，装到 `~/.agents/skills/quadruple-audit`，版本回读一致；
   - 只下载 `install.sh` 单独执行（不给它本地包），它自己拉取仓库、解包、安装成功。
-- **Linux** 实测通过（2026-10-23，Ubuntu 24.04 / 内核 6.8 / bash 5.2.21 / GNU tar 1.35 / curl 8.5.0，阿里云 ECS）：`install.sh` 自举拉取 → 装到 `~/.claude/skills/quadruple-audit`，`version: 1.2.4`，文件完整（`SKILL.md` / `README.md` / `LICENSE` / `examples/sample-report.md`）；冒烟夹具在该机 `node v22` 上运行，如设计般以**退出码 1** 失败（断言 `未删除任何行却返回了 success:true`）。
+- **Linux** 实测通过（2026-10-23，Ubuntu 24.04 / 内核 6.8 / bash 5.2.21 / GNU tar 1.35 / curl 8.5.0，阿里云 ECS）：`install.sh` 自举拉取 → 装到 `~/.claude/skills/quadruple-audit`，`version: 1.2.4`（当次实测的版本；当前版本以 `SKILL.md` 的 `version:` 为准），文件完整（`SKILL.md` / `README.md` / `LICENSE` / `examples/sample-report.md`）；冒烟夹具在该机 `node v22` 上运行，如设计般以**退出码 1** 失败（断言 `未删除任何行却返回了 success:true`）。
 
 实测中的一个细节值得记下来：同一台机器上 `raw.githubusercontent.com` 可能连不上，而 `github.com` 的归档下载可用——**被墙的往往只是 raw 域名**。所以安装脚本本身从镜像取、或用镜像整包，通常就够；脚本内部的镜像回退是为 github.com 也连不上时准备的。Linux 那台恰好反过来：`github.com` 直连可用，镜像没被触发。
 
@@ -151,9 +153,11 @@ what: 已收藏时点击 → 23505 → 卡在未收藏
 evidence: <你亲眼看到的行内容 / SQL 与返回 / 命令与退出码>
 ```
 
-两种用法走的是同一套流程，区别只在锚定阶段要回答的问题：一个是「这里到底有没有问题」，一个是「这条结论成不成立」。复现者只拿到 `where / what / evidence`，拿不到提出者的推理，它可以复现、可以否定、可以存疑——所以被复核的结论不成立时，它会说出来，而不是顺着补理由。
+两种用法共用同一套证据规则，但用法二不跑阶段一的扇出：给定的 `where / what / evidence` 直接进入阶段二，`refuted` 时进翻案复核，3a 只补查相关调用链。复现者只拿到这三个字段，拿不到提出者的推理——所以被复核的结论不成立时，它会说出来，而不是顺着补理由。
 
-想先验证它好不好使？拿 [`examples/fixture/`](examples/fixture/) 跑一次冒烟测试：一个零依赖的迷你项目，埋了 3 个真问题和 1 个应被否掉的假问题，期望产出见 [`examples/fixture-expected.md`](examples/fixture-expected.md)。
+想先验证它好不好使？拿 [`examples/fixture/`](examples/fixture/) 跑一次冒烟测试：一个零依赖的迷你项目，埋了 3 个真问题和 1 个陷阱（若被提出，应被否掉；不保证被提出），期望产出见 [`examples/fixture-expected.md`](examples/fixture-expected.md)。
+
+想验证「否定 + 翻案」链路，用「用法二」把 `fixture-expected.md` 里那条假结论原样交给流程；盲审不保证会主动提出它，没提出时「已排除」为空是正常的。
 
 ## 两种运行方式
 
@@ -164,13 +168,15 @@ evidence: <你亲眼看到的行内容 / SQL 与返回 / 命令与退出码>
 
 B 档的结构性隔离靠提示词实现：复现者拿到的只有 `where` / `what` / `evidence` 三个字段，看不到提出者的推理过程。
 
+B/C 档说的是调度方式；报告里的 `mode`（full / lightweight / claim-verification）说的是本次审查的范围，两者不是一回事。
+
 ## 它实际审出了什么
 
 三条发现来自两次真实审查（同一个中型 React + Supabase 项目的收藏功能，均已脱敏）。第一条出自本仓库附带的完整样例报告（[`examples/sample-report.md`](examples/sample-report.md)）；第二、三条出自另一次审查，其完整报告未随仓库发布。三条分别说明这套流程的三个不同作用：
 
 **一、抓到一处持久性数据错误。** 同一批计数触发器在历史上有两份同时生效，每次收藏被加了两次；后来只删掉了多余那个，**从没回填过**。也就是说详情页显示的收藏数接近真实值两倍，而且不会自愈。
 
-**二、把夸大降了级。** 提出者报「软件收藏计数不更新，medium」。复现者回源头查完，发现那个字段**在整个仓库里没有任何组件渲染**，从不展示也不排序，于是降到 low。同时它补充：同类的 rating 计数器有完全相同的缺失。
+**二、把夸大降了级。** 提出者报「软件收藏计数不更新，medium」。复现者回源头查完，发现那个字段**在整个仓库里没有任何组件渲染**，从不展示也不排序，于是从确认项降为改进建议（不占 severity；注意这不同于样例 #8 那种会掩盖授权失败的 0 行成功，后者按 medium 处理）。同时它补充：同类的 rating 计数器有完全相同的缺失。
 
 **三、否掉了一个编造的崩溃。** 一条发现说「外键错误未处理会白屏」。复现者打开代码发现 `throw` 就在同一个 `try` 块里，下面紧跟 `catch`，链路根本不逃逸。翻案复核员不服，**真的跑了那段代码**（注入真实的 23503 错误，四条路径全返回普通对象、无一逃逸），然后把原判维持为「不成立」，同时指出真问题是个更轻的：数据库原文会直接显示给用户。
 
@@ -190,6 +196,8 @@ B 档的结构性隔离靠提示词实现：复现者拿到的只有 `where` / `
 
 控制手段：限制读取范围（最大项）、控制分区数量、同根因归类、复现分级、单次复现条数上限，以及开派前先预留复现与反查预算。
 
+报告开头会写 `runStatus` 与 `mode`；`complete` 只表示按声明范围收口，不保证完整四轮；truncated 或 blocked 不能按完整流程引用。
+
 ### 轻量模式
 
 如果完整四轮超出预算，或者第一次用、想先看看输出质量：锚定 + 单个视角取证 + 只对 high/medium 发现派复现，数百万 token 就能出一份带覆盖账本的小报告。它不做扇出和反查，覆盖有限——这一点必须写进账本，不能装作跑过完整流程。结论可疑、或代价确实高时，再升级完整四轮。
@@ -200,7 +208,7 @@ B 档的结构性隔离靠提示词实现：复现者拿到的只有 `where` / `
 |---|---|
 | 改文案、调样式、单行修改 | 不用，直接改 |
 | 目标明确、只有一条路径 | 一轮普通审查 |
-| 已审过，只想复核某个具体点 | 派单个复现者，不要重跑四轮 |
+| 已审过，只想复核某个具体点 | 用法二（锚定 + 单条复现；否定时加翻案复核），不要重跑完整扇出 |
 | 第一次试用，想先看输出质量 | 轻量模式（见「成本」一节） |
 | 支付、权限、数据删除、资金结算 | **用**，值得这个成本 |
 | 首次接触陌生代码库 | 用，但先把分区切小 |
@@ -224,7 +232,7 @@ B 档的结构性隔离靠提示词实现：复现者拿到的只有 `where` / `
 |------|------|
 | `SKILL.md` | 全部内容：阶段总览、证据契约、两档适配、提示词骨架、反模式、已知局限 |
 | `examples/sample-report.md` | 一次真实审查的完整脱敏输出 |
-| `examples/fixture/` + `examples/fixture-expected.md` | 冒烟测试：零依赖迷你项目，埋了 3 个真问题 + 1 个应被否掉的假问题，附期望产出 |
+| `examples/fixture/` + `examples/fixture-expected.md` | 冒烟测试：零依赖迷你项目，埋了 3 个真问题 + 1 个陷阱（若被提出应被否掉；不保证被提出），附期望产出 |
 | `install.sh` / `install.ps1` | 一行安装脚本（macOS / Linux / Windows），支持克隆本地安装与远程拉取安装，自动探测本机的 agent 技能目录；会一并装上示例、冒烟夹具与 `CONTRIBUTING.md` |
 | `CONTRIBUTING.md` | 最需要什么贡献、改流程时必须守住的三条 |
 | `LICENSE` | MIT |
