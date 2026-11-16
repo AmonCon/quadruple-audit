@@ -15,6 +15,9 @@ package-lock.json
 *.log
 *.tmp
 
+# Privacy gate local word list (must never be committed: it IS the secret list)
+.privacy-deny
+
 # Secrets — this repo must stay credential-free.
 # The skill never needs the credentials of the project it audits: auditors read
 # them at run time, they are never written into prompts, logs or artifacts.
